@@ -50,7 +50,16 @@ app.post('/api/persons', (request, response) => {
       error: 'number missing' 
     })
   }
-
+  var names = []
+  for (var i = 0; i < persons.length; i++) {
+    names.push(persons[i].name)
+  }
+  console.log(names)
+  if (names.includes(body.name)) {
+    return response.status(409).json({ 
+      error: 'name must be unique' 
+    })
+  }
 
   const person = {
     name: body.name,
