@@ -1,5 +1,7 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
+
 
 let persons = [
   {
@@ -26,6 +28,8 @@ let persons = [
 
 app.use(express.json())
 
+app.use(morgan('tiny'))
+
 app.get('/', (req, res) => {
   res.send('<h1>Hello World!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</h1>')
 })
@@ -45,16 +49,18 @@ app.post('/api/persons', (request, response) => {
       error: 'name missing' 
     })
   }
+
   if (!body.number) {
     return response.status(400).json({ 
       error: 'number missing' 
     })
   }
+
   var names = []
   for (var i = 0; i < persons.length; i++) {
     names.push(persons[i].name)
   }
-  console.log(names)
+
   if (names.includes(body.name)) {
     return response.status(409).json({ 
       error: 'name must be unique' 
