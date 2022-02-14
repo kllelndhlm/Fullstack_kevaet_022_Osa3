@@ -2,6 +2,27 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
+const Name = require('./models/name')
+
+const url = 'mongodb+srv://puhluet:Paluu.Pulpettiin1979@cluster0.2wtbn.mongodb.net/puhluetteloDatabase?retryWrites=true&w=majority'
+
+console.log('connecting to', url)
+
+mongoose.connect(url)
+  .then(result => {
+    console.log('connected to MongoDB')
+  })
+  .catch((error) => {
+    console.log('error connecting to MongoDB:', error.message)
+  })
+
+const nameSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+})
+
+//const Name = mongoose.model('Name', nameSchema)
 
 /*let persons = [
   {
@@ -48,54 +69,32 @@ const generateId = () => {
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  if (!body.name) {
-    return response.status(400).json({ 
-      error: 'name missing' 
-    })
+  if (body.name === undefined) {
+    return response.status(400).json({ error: 'name missing' })
   }
 
-  if (!body.number) {
-    return response.status(400).json({ 
-      error: 'number missing' 
-    })
-  }
-
-  var names = []
-  for (var i = 0; i < persons.length; i++) {
-    names.push(persons[i].name)
-  }
-
-  if (names.includes(body.name)) {
-    return response.status(409).json({ 
-      error: 'name must be unique' 
-    })
-  }
-
-  const person = {
+  const name = new Name({
     name: body.name,
     number: body.number,
-    id: generateId(),
-  }
+  })
 
-  persons = persons.concat(person)
-
-  response.json(person)
+  name.save().then(savedName => {
+    response.json(savedName)
+  })
 })
 
-
 app.get('/info', (req,res) => {
-  res.send(`<p>Phonebook has info for ${persons.length} people.</p><p>${new Date()}</p>`);
+  res.send(`<p>Phonebook has info for ${names.length} people.</p><p>${new Date()}</p>`);
 });
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  res.json(people)
 })
 
 app.delete('/api/person/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-
-  response.status(204).end()
+  Name.findById(request.params.id).then(name => {
+    response.json(name)
+  })
 })
 
 app.get('/api/person/:id', (request, response) => {
