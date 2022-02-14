@@ -1,7 +1,30 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
+const Name = require('./models/name')
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
+
+//const url =
+//  `mongodb+srv://puhluet:Paluu.Pulpettiin1979@cluster0.2wtbn.mongodb.net/puhluetteloDatabase?retryWrites=true&w=majority`
+
+//mongoose.connect(url)
+
+const nameSchema = new mongoose.Schema({
+  name: String,
+  number: String
+})
+
+nameSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+//const Name = mongoose.model('Name', nameSchema)
 
 let persons = [
   {
@@ -87,8 +110,10 @@ app.get('/info', (req,res) => {
   res.send(`<p>Phonebook has info for ${persons.length} people.</p><p>${new Date()}</p>`);
 });
 
-app.get('/api/persons', (req, res) => {
-  res.json(persons)
+app.get('/api/persons', (request, response) => {
+  Name.find({}).then(person => {
+    response.json(person)
+  })
 })
 
 app.delete('/api/person/:id', (request, response) => {
