@@ -1,30 +1,7 @@
-require('dotenv').config()
 const express = require('express')
 const app = express()
-const Name = require('./models/name')
 const morgan = require('morgan')
 const cors = require('cors')
-const mongoose = require('mongoose')
-
-//const url =
-//  `mongodb+srv://puhluet:Paluu.Pulpettiin1979@cluster0.2wtbn.mongodb.net/puhluetteloDatabase?retryWrites=true&w=majority`
-
-//mongoose.connect(url)
-
-const nameSchema = new mongoose.Schema({
-  name: String,
-  number: String
-})
-
-nameSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-})
-
-//const Name = mongoose.model('Name', nameSchema)
 
 let persons = [
   {
@@ -61,26 +38,43 @@ app.get('/', (req, res) => {
   res.send('<h1>Hello World!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</h1>')
 })
 
+
+const generateId = () => {
+  min = 10
+  max= 1000000000
+  return Math.random() * (max - min) + min
+}
+
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  if (body.content === undefined) {
-    return response.status(400).json({ error: 'content missing' })
+  if (!body.name) {
+    return response.status(400).json({ 
+      error: 'name missing' 
+    })
   }
 
-  const name = new Name({
-    name: body.name,
-    number: body.number,
-  })
+  if (!body.number) {
+    return response.status(400).json({ 
+      error: 'number missing' 
+    })
+  }
 
-  name.save().then(savedName => {
-    response.json(savedName)
-  })
-})
+  var names = []
+  for (var i = 0; i < persons.length; i++) {
+    names.push(persons[i].name)
+  }
+
+  if (names.includes(body.name)) {
+    return response.status(409).json({ 
+      error: 'name must be unique' 
+    })
+  }
 
   const person = {
     name: body.name,
     number: body.number,
+    id: generateId(),
   }
 
   persons = persons.concat(person)
@@ -93,10 +87,8 @@ app.get('/info', (req,res) => {
   res.send(`<p>Phonebook has info for ${persons.length} people.</p><p>${new Date()}</p>`);
 });
 
-app.get('/api/persons', (request, response) => {
-  Name.find({}).then(person => {
-    response.json(person)
-  })
+app.get('/api/persons', (req, res) => {
+  res.json(persons)
 })
 
 app.delete('/api/person/:id', (request, response) => {
