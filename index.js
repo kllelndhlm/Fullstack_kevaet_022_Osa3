@@ -61,43 +61,26 @@ app.get('/', (req, res) => {
   res.send('<h1>Hello World!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</h1>')
 })
 
-
-const generateId = () => {
-  min = 10
-  max= 1000000000
-  return Math.random() * (max - min) + min
-}
-
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  if (!body.name) {
-    return response.status(400).json({ 
-      error: 'name missing' 
-    })
+  if (body.content === undefined) {
+    return response.status(400).json({ error: 'content missing' })
   }
 
-  if (!body.number) {
-    return response.status(400).json({ 
-      error: 'number missing' 
-    })
-  }
+  const name = new Name({
+    name: body.name,
+    number: body.number,
+  })
 
-  var names = []
-  for (var i = 0; i < persons.length; i++) {
-    names.push(persons[i].name)
-  }
-
-  if (names.includes(body.name)) {
-    return response.status(409).json({ 
-      error: 'name must be unique' 
-    })
-  }
+  name.save().then(savedName => {
+    response.json(savedName)
+  })
+})
 
   const person = {
     name: body.name,
     number: body.number,
-    id: generateId(),
   }
 
   persons = persons.concat(person)
